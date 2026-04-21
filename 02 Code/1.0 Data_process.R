@@ -17,6 +17,9 @@ births <- births_long |>
   filter(week_gest_num == max(week_gest_num)) |> 
   ungroup() 
 
+births_temp <- births_long |> 
+  select(id, week_gest_num, date_start_week, date_end_week) 
+
 glimpse(births) # 713918
 
 rm(births_long)
@@ -157,6 +160,12 @@ births_hw_o3 <- births_hw_o3 |>
   left_join(sovi, by = "com") 
 
 glimpse(births_hw_o3)
+
+
+## Temperature exposure matrix (wide) ----
+
+glimpse(births_temp)
+
 
 ## Save data ----
 rio::export(births_hw_o3, paste0(data_out, "births_2010_2020_last_week_hw_o3", ".RData")) # 2010 - 2020
