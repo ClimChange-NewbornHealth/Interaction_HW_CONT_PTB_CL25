@@ -15,7 +15,7 @@ glimpse(births_long)
 births <- births_long |> 
   group_by(id) |> 
   filter(week_gest_num == max(week_gest_num)) |> 
-  ungroup()
+  ungroup() 
 
 glimpse(births) # 713918
 
@@ -142,6 +142,21 @@ births_hw_o3 <- births_hw |>
 
 glimpse(births_hw_o3)
 summary(births_hw_o3)
+
+## Add vulnerability index (VI) ----
+sovi <- rio::import(paste0(data_inp, "sovi_datasets", ".RData")) |> 
+  select(-name_comuna)  |> 
+  rename(vulnerability=vulnerablidad) |> 
+    mutate(vulnerability = fct_recode(vulnerability,
+      "Low" = "Baja",
+      "Medium-low" = "Medio-baja",
+      "Medium-high" = "Medio-alta")) |> 
+  rename(com=cod_com)
+
+births_hw_o3 <- births_hw_o3 |> 
+  left_join(sovi, by = "com") 
+
+glimpse(births_hw_o3)
 
 ## Save data ----
 rio::export(births_hw_o3, paste0(data_out, "births_2010_2020_last_week_hw_o3", ".RData")) # 2010 - 2020

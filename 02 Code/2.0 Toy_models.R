@@ -10,3 +10,8 @@ data_out <- "01 Data/Output/"
 models_output <- "03 Output/Models/"
 
 ## Load Data ----
+births_hw_o3 <- rio::import(paste0(data_out, "births_2010_2020_last_week_hw_o3", ".RData"))
+glimpse(births_hw_o3)
+
+## Toy models example mediation ----
+
