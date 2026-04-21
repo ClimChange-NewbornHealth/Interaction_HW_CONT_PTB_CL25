@@ -17,8 +17,8 @@ births <- births_long |>
   filter(week_gest_num == max(week_gest_num)) |> 
   ungroup() 
 
-births_temp <- births_long |> 
-  select(id, week_gest_num, date_start_week, date_end_week) 
+births_temp <- births_long |>
+  dplyr::select(id, com, week_gest_num, date_start_week, date_end_week)
 
 glimpse(births) # 713918
 
@@ -146,6 +146,26 @@ births_hw_o3 <- births_hw |>
 glimpse(births_hw_o3)
 summary(births_hw_o3)
 
+## Weekly gestational TAD (dataset aparte; usa la misma grilla `o3` solo para TAD) ----
+# Una fila por id × week_gest_num: media diaria de TAD (°C) en [date_start_week, date_end_week]
+# por comuna (misma lógica de ventana que el O3 de la última semana, pero sobre toda la gestación).
+births_temp_dt <- data.table::as.data.table(births_temp)
+data.table::setkey(o3_dt, com, date)
+
+tic()
+tmax_week_avg <- o3_dt[births_temp_dt,
+  on = .(com, date >= date_start_week, date <= date_end_week),
+  .(tmax_week_mean = mean(tmax, na.rm = TRUE)),
+  by = .EACHI]
+toc() # ~ 20 sec elapsed
+
+# El join devuelve la media en una columna nombrada en j (p. ej. tad_week_mean o tmax_week_mean).
+# Si en j usas mean(tmax,...) el nombre será tmax_week_mean; mean(TAD,...) → tad_week_mean.
+births_temp_dt[, tmax_week_mean := tmax_week_avg[["tmax_week_mean"]]]
+glimpse(births_temp_dt)
+births_temp <- births_temp_dt
+glimpse(births_temp)
+
 ## Add vulnerability index (VI) ----
 sovi <- rio::import(paste0(data_inp, "sovi_datasets", ".RData")) |> 
   select(-name_comuna)  |> 
@@ -161,11 +181,6 @@ births_hw_o3 <- births_hw_o3 |>
 
 glimpse(births_hw_o3)
 
-
-## Temperature exposure matrix (wide) ----
-
-glimpse(births_temp)
-
-
 ## Save data ----
 rio::export(births_hw_o3, paste0(data_out, "births_2010_2020_last_week_hw_o3", ".RData")) # 2010 - 2020
+rio::export(births_temp, paste0(data_out, "births_2010_2020_weekly_gest_tad", ".RData"))
